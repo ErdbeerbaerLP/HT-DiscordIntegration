@@ -1,0 +1,108 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'com.gradleup.shadow' version "8+"
+    id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
+}
+
+version = project.version;
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    withSourcesJar()
+    withJavadocJar()
+}
+
+javadoc {
+    options.addStringOption('Xdoclint:-missing', '-quiet')
+}
+
+repositories {
+    mavenCentral()
+}
+configurations {
+    embed
+    compileOnly.extendsFrom(embed)
+    testImplementation.extendsFrom(embed)
+}
+artifacts {
+    archives tasks.shadowJar
+}
+shadowJar {
+    //noinspection GroovyAccessibility
+    archiveClassifier = ""
+    configurations = [project.configurations.embed]
+
+
+
+    exclude('META-INF/services/**')
+    relocate 'okhttp3', 'dcshadow.okhttp'
+    relocate 'org.slf4j', 'dcshadow.org.slf4j'
+    relocate 'okio', 'dcshadow.okio'
+    relocate 'club.minnced', 'dcshadow.club.minnced'
+    relocate 'com.sun', 'dcshadow.com.sun'
+    relocate 'com.iwebpp', 'dcshadow.com.iwebpp'
+    relocate 'com.neovisionaries', 'dcshadow.com.neovisionaries'
+    relocate 'gnu', 'dcshadow.gnu'
+    relocate 'org.apache.commons.collections4', 'dcshadow.org.apache.commons.collections4'
+    relocate('org.apache.commons.lang3', 'dcshadow.org.apache.commons.lang3')
+    relocate 'org.json', 'dcshadow.org.json'
+    relocate 'org.intellij', 'dcshadow.org.intellij'
+    relocate 'org.jetbrains', 'dcshadow.org.jetbrains'
+    relocate 'tomp2p', 'dcshadow.tomp2p'
+    relocate 'com.fasterxml', 'dcshadow.com.fasterxml'
+    relocate 'dev.vankka', 'dcshadow.dev.vankka'
+    relocate 'org.checkerframework', 'dcshadow.org.checkerframework'
+    relocate "com.moandjiezana", "dcshadow.com.moandjiezana"
+    relocate "ch.lambdaj", "dcshadow.ch.lambdaj"
+    relocate "emoji4j", "dcshadow.emoji4j"
+    relocate "javax.annotation", "dcshadow.javax.annotation"
+    relocate "net.sf", "dcshadow.net.sf"
+    relocate "org.hamcrest", "dcshadow.org.hamcrest"
+    relocate "org.objenesis", "dcshadow.org.objenesis"
+    relocate "kotlin", "dcshadow.kotlin"
+    relocate "com.vdurmont", "dcshadow.com.vdurmont"
+    relocate "com.google.gson", "dcshadow.com.google.gson"
+}
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    compileOnly(files("/mnt/games/hytale/2026.01.13-dcad8778f/Server/HytaleServer.jar"))
+
+
+    embed('com.vdurmont:emoji-java:5.1.1')
+    embed("net.dv8tion:JDA:6.3.0"){
+        exclude module: 'opus-java'
+        exclude module: 'tink'
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+processResources {
+
+}
+
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    if (providers.environmentVariable("HT_MAVEN_USERNAME").present) {
+        repositories {
+            maven() {
+                url = "https://maven.hytale-modding.info/releases"
+                credentials {
+                    username = providers.environmentVariable("HT_MAVEN_USERNAME").get()
+                    password = providers.environmentVariable("HT_MAVEN_PASSWORD").get()
+                }
+            }
+        }
+    }
+
+}
+tasks.build.dependsOn(shadowJar)

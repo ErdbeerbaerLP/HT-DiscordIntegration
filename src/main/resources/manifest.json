@@ -1,0 +1,19 @@
+{
+  "Group": "DiscordIntegration",
+  "Name": "DiscordIntegration",
+  "Version": "0.1.0",
+  "Description": "A Hytale Discord Integration Plugin",
+  "Authors": [
+    {
+      "Name": "ErdbeerbaerLP",
+      "Email": "ht@erdbeerbaerlp.de",
+      "Url": "https://erdbeerbaerlp.de"
+    }
+  ],
+  "Website": "https://github.com/ErdbeerbaerLP/HT-DiscordIntegration",
+  "Main": "de.erdbeerbaerlp.htdcintegration.DiscordPlugin",
+  "ServerVersion": "*",
+  "Dependencies": {},
+  "OptionalDependencies": {},
+  "DisabledByDefault": false
+}
