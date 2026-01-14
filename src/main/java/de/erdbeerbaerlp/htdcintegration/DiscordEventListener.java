@@ -31,7 +31,7 @@ public class DiscordEventListener implements EventListener {
                     String msg = ev.getMessage().getContentDisplay();
                     msg = formatEmoteMessage(ev.getMessage().getMentions().getCustomEmojis(), msg);
                     for (final PlayerRef p : Universe.get().getPlayers()) {
-                        p.sendMessage(com.hypixel.hytale.server.core.Message.raw("[Discord] " + ev.getAuthor().getEffectiveName() + ": " + msg));
+                        p.sendMessage(com.hypixel.hytale.server.core.Message.raw(DiscordPlugin.getInstance().messages.get().ingameMessage.replace("%username%",ev.getAuthor().getEffectiveName()).replace("%message%", msg)));
                     }
                 }
 

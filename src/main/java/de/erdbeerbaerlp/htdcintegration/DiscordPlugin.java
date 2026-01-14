@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 
+import java.util.Timer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -25,9 +26,10 @@ public class DiscordPlugin extends JavaPlugin {
 
     private static DiscordPlugin instance;
     final Config<DiscordConfig> config;
+    final Config<MessageConfig> messages;
 
     public Discord discord;
-    private DiscordConfig conf;
+    private StatusUpdateTask statusUpdater;
 
     /**
      * Constructor - Called when plugin is loaded.
@@ -38,6 +40,7 @@ public class DiscordPlugin extends JavaPlugin {
         getLogger().atInfo().log("Loading...");
         instance = this;
         this.config = this.withConfig("DiscordIntegration", DiscordConfig.CODEC);
+        this.messages = this.withConfig("Messages", MessageConfig.CODEC);
 
 
     }
@@ -45,15 +48,17 @@ public class DiscordPlugin extends JavaPlugin {
     @Override
     protected void start() {
         super.start();
-        discord.sendMessage("Server Started!");
+        discord.sendMessage(messages.get().serverStart);
     }
 
+    private static Timer timer = new Timer();
     @Override
     protected void setup() {
         super.setup();
         getLogger().atInfo().log("Plugin enabled!");
 
         this.config.save();
+        this.messages.save();
 
         if(config.get().botToken.isBlank()){
             getLogger().atSevere().log("Discord bot token is blank!");
@@ -71,30 +76,36 @@ public class DiscordPlugin extends JavaPlugin {
         getEventRegistry().registerGlobal(PlayerChatEvent.class, this::onPlayerChat);
         getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
         getEventRegistry().registerGlobal(PlayerConnectEvent.class, this::onPlayerConnect);
+
+        if (statusUpdater == null) statusUpdater = new StatusUpdateTask();
+
+        timer.scheduleAtFixedRate(statusUpdater, 0, TimeUnit.SECONDS.toMillis(10));
     }
 
     private void onPlayerConnect(PlayerConnectEvent event) {
         final PlayerRef player = event.getPlayerRef();
-        discord.sendMessage(player.getUsername() + " joined the game!");
+        discord.sendMessage(messages.get().playerJoin.replace("%playername%",player.getUsername()));
     }
 
     private void onPlayerDisconnect(PlayerDisconnectEvent event) {
         final PlayerRef player = event.getPlayerRef();
-        discord.sendMessage(player.getUsername() + " left the game!");
+        discord.sendMessage(messages.get().playerLeave.replace("%playername%",player.getUsername()));
 
     }
     public void onPlayerChat(PlayerChatEvent event) {
         final PlayerRef player = event.getSender();
         final String message = event.getContent();
 
-        discord.sendMessage(player.getUsername() + ": "+message);
+        discord.sendMessage(messages.get().discordMessage.replace("%playername%",player.getUsername()).replace("%message%",message));
     }
 
     @Override
     protected void shutdown() {
         getLogger().atInfo().log("Plugin disabled!");
 
-        discord.sendMessage("Server Stopped!");
+        timer.cancel();
+        timer.purge();
+        discord.sendMessage(messages.get().serverStop);
         try {
             discord.getJda().awaitShutdown(2, TimeUnit.SECONDS);
         } catch (InterruptedException e) {

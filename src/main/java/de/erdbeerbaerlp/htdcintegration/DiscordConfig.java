@@ -10,12 +10,12 @@ public class DiscordConfig {
     public static final BuilderCodec<DiscordConfig> CODEC =
             BuilderCodec.builder(DiscordConfig.class, DiscordConfig::new)
                     .append(new KeyedCodec<Long>("ChannelID", Codec.LONG),
-                            (exConfig, aDouble, extraInfo) -> exConfig.channelID = aDouble,  // Setter
+                            (exConfig, val, extraInfo) -> exConfig.channelID = val,  // Setter
                             (exConfig, extraInfo) -> exConfig.channelID)                     // Getter
 
                     .add()
                     .append(new KeyedCodec<String>("BotToken", Codec.STRING),
-                            (exConfig, aDouble, extraInfo) -> exConfig.botToken = aDouble,  // Setter
+                            (exConfig, val, extraInfo) -> exConfig.botToken = val,  // Setter
                             (exConfig, extraInfo) -> exConfig.botToken)                     // Getter
                     .add()
                     .build();

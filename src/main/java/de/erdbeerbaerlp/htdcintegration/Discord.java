@@ -15,7 +15,7 @@ public class Discord {
     private JDA jda;
 
     public Discord() throws InterruptedException {
-        jda = JDABuilder.createDefault(DiscordPlugin.getInstance().config.get().getBotToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT).setActivity(Activity.playing("Hytale")).build().awaitReady();
+        jda = JDABuilder.createDefault(DiscordPlugin.getInstance().config.get().getBotToken()).enableIntents(GatewayIntent.MESSAGE_CONTENT).build().awaitReady();
         jda.addEventListener(new DiscordEventListener());
     }
 
