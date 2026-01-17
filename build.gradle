@@ -62,7 +62,7 @@ shadowJar {
     relocate "org.objenesis", "dcshadow.org.objenesis"
     relocate "kotlin", "dcshadow.kotlin"
     relocate "com.vdurmont", "dcshadow.com.vdurmont"
-    relocate "com.google.gson", "dcshadow.com.google.gson"
+    //relocate "com.google.gson", "dcshadow.com.google.gson"
 }
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
@@ -75,11 +75,9 @@ dependencies {
         exclude module: 'opus-java'
         exclude module: 'tink'
     }
+    embed("org.apache.commons:commons-lang3:3.20.0")
 }
 
-test {
-    useJUnitPlatform()
-}
 
 processResources {
 

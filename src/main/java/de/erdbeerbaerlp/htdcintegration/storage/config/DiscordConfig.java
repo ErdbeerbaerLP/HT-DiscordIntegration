@@ -1,4 +1,4 @@
-package de.erdbeerbaerlp.htdcintegration;
+package de.erdbeerbaerlp.htdcintegration.storage.config;
 
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -23,6 +23,8 @@ public class DiscordConfig {
     // 2. Configuration variable with default value
     public Long channelID = 0L;
     public String botToken = "";
+
+
 
     // 3. Constructor
     public DiscordConfig() {
