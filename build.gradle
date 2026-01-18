@@ -9,7 +9,9 @@ version = project.version;
 
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+    if (!providers.environmentVariable("HT_SKIP_SOURCES").getOrElse("false").toBoolean()) {
     withSourcesJar()
+    }
     withJavadocJar()
 }
 
