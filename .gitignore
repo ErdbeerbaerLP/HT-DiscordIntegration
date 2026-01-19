@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 .kotlin/
 
+# Hytale Server
+libs/HytaleServer.jar
+
 # Server testing directory
 run/
 

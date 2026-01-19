@@ -11,6 +11,10 @@ This mod will be extended in the future to have plenty of additional features! S
 ## How to build
 Download the hytale server jar using a known method, like the official hytale server downloader.
 
-In the build.gradle, replace the dependency path to point to your local hytale server jar file.
+Then you have the following options:
+
+- Copy the hytale server jar to `./libs/HytaleServer.jar`.
+- Set the environment variable `HT_SERVER_JAR` to the path of the hytale server jar.
+- Change the default value of `./libs/HytaleServer.jar` in `./build.gradle` to point to your local hytale server jar file.
 
 After that everything gradle (like gradlew build) should work.

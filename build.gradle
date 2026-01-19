@@ -10,7 +10,7 @@ version = project.version;
 java {
     toolchain.languageVersion = JavaLanguageVersion.of(java_version)
     if (!providers.environmentVariable("HT_SKIP_SOURCES").getOrElse("false").toBoolean()) {
-    withSourcesJar()
+        withSourcesJar()
     }
     withJavadocJar()
 }
@@ -69,8 +69,7 @@ shadowJar {
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    compileOnly(files("/mnt/games/hytale/2026.01.13-dcad8778f/Server/HytaleServer.jar"))
-
+    compileOnly(files(providers.environmentVariable("HT_SERVER_JAR").getOrElse("./libs/HytaleServer.jar")))
 
     embed('com.vdurmont:emoji-java:5.1.1')
     embed("net.dv8tion:JDA:6.3.0"){
