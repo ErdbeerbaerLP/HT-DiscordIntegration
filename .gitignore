@@ -9,6 +9,9 @@ build/
 # Hytale Server
 libs/HytaleServer.jar
 
+# Nix
+result
+
 # Server testing directory
 run/
 
