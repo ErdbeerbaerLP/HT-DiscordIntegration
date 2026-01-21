@@ -40,3 +40,16 @@ nix fmt
 ```
 
 Note that you have to enable the following experimental features in nix: `nix-command` and `flakes`.
+
+### Update Lock Files
+
+To update the gradle lock file use:
+
+```bash
+nix run .#gradle2nix
+```
+
+To update the nix lock file use:
+```bash
+nix flake update
+```
