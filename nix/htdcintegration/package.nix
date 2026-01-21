@@ -2,15 +2,33 @@
   read-properties,
   buildGradlePackage,
   gradle_9-unwrapped,
-  hytale-server-jar,
   lib,
   withBuildJdk,
   withSrc,
+  withHytaleServerJar,
+  withSourcesJar ? false,
+  withJavadocJar ? false,
 }:
 let
   properties = read-properties "${withSrc}/gradle.properties";
+  copyAllJars = ''
+    mkdir -p $out/libs
+    cp -r build/libs/* $out/libs/
+  '';
+  moveJars =
+    {
+      output,
+      suffix,
+      skip,
+    }:
+    lib.optionalString (!skip) ''
+      mkdir -p ''$${output}/share/java
+      for f in $out/libs/*${suffix}.jar; do
+        mv "$f" ''$${output}/share/java/
+      done
+    '';
 in
-buildGradlePackage {
+(buildGradlePackage {
   buildJdk = withBuildJdk;
   pname = properties.name;
   gradle = gradle_9-unwrapped;
@@ -20,12 +38,11 @@ buildGradlePackage {
   src = withSrc;
   outputs = [
     "out"
-    "devdoc"
-  ];
+  ]
+  ++ lib.optionals withSourcesJar [ "dev" ]
+  ++ lib.optionals withJavadocJar [ "devdoc" ];
   env = {
-    # always copy the server jar to this location within the nix build folder
     HT_SERVER_JAR = "./libs/HytaleServer.jar";
-    HT_SKIP_SOURCES = "true";
   };
   meta = {
     description = "Mod for integrating Discord with the Hytale Server";
@@ -40,14 +57,36 @@ buildGradlePackage {
   };
   preBuild = ''
     mkdir -p ./libs
-    cp ${hytale-server-jar} $HT_SERVER_JAR
+    cp ${withHytaleServerJar} $HT_SERVER_JAR
   '';
   installPhase = ''
     runHook preInstall
-    mkdir -p $out/libs
-    cp -r build/libs/* $out/libs/
-    mkdir -p $devdoc/share/devhelp/htdcintegration
-    mv $out/libs/*-javadoc.jar $devdoc/share/devhelp/htdcintegration/
+    ${copyAllJars}
+    ${moveJars {
+      output = "dev";
+      suffix = "-sources";
+      skip = !withSourcesJar;
+    }}
+    ${moveJars {
+      output = "devdoc";
+      suffix = "-javadoc";
+      skip = !withJavadocJar;
+    }}
     runHook postInstall
   '';
-}
+}).overrideAttrs
+  # overriding attributes instead of just setting them above to keep the default value of gradleFlags
+  (
+    oldAttrs: {
+      gradleFlags =
+        oldAttrs.gradleFlags
+        ++ lib.optionals (!withSourcesJar) [
+          "-x"
+          "sourcesJar"
+        ]
+        ++ lib.optionals (!withJavadocJar) [
+          "-x"
+          "javadocJar"
+        ];
+    }
+  )

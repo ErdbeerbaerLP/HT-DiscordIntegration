@@ -1,5 +1,6 @@
 { inputs, ... }:
 {
+  # there is no upstream overlay for gradle2nix
   flake.overlays.gradle2nix =
     final: prev:
     let

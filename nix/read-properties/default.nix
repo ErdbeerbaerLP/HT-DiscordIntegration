@@ -1,4 +1,3 @@
-_:
 {
   flake.overlays.read-properties = final: _prev: {
     read-properties = final.callPackage ./package.nix {

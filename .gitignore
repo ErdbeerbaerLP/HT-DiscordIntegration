@@ -11,6 +11,7 @@ libs/HytaleServer.jar
 
 # Nix
 result
+result-*
 
 # Server testing directory
 run/
