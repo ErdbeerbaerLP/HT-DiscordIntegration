@@ -1,6 +1,3 @@
-# To initialize the `gradle.lock` file use `nix run .#gradle2nix`
-# To build the jar use `nix build .#htdcintegration --impure --include hytale-server-jar=/path/to/HytaleServer.jar`
-# To format this file use `nix fmt`
 {
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   inputs.flake-parts.url = "github:hercules-ci/flake-parts";
