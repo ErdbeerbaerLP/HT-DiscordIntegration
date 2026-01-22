@@ -3,13 +3,11 @@ package de.erdbeerbaerlp.htdcintegration;
 import com.vdurmont.emoji.EmojiParser;
 import de.erdbeerbaerlp.htdcintegration.discordCommands.DiscordCommand;
 import de.erdbeerbaerlp.htdcintegration.storage.CommandRegistry;
-import de.erdbeerbaerlp.htdcintegration.util.DiscordMessage;
 import de.erdbeerbaerlp.htdcintegration.util.MessageUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.entities.emoji.CustomEmoji;
@@ -24,7 +22,6 @@ import net.dv8tion.jda.api.requests.restaction.interactions.ReplyCallbackAction;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 public class DiscordEventListener implements EventListener {
@@ -72,7 +69,7 @@ public class DiscordEventListener implements EventListener {
                     msg = formatEmoteMessage(ev.getMessage().getMentions().getCustomEmojis(), msg);
                     MessageUtil.broadcastMessageIngame(
                             DiscordPlugin.getInstance().messages.get().ingameMessage
-                                    .replace("%username%", MessageUtil.normalize(ev.getAuthor().getEffectiveName()))
+                                    .replace("%username%", ev.getMember() == null ? ev.getAuthor().getEffectiveName() : ev.getMember().getEffectiveName())
                                     .replace("%uniquename%", ev.getAuthor().getName())
                                     .replace("%message%", msg));
                 }
@@ -93,19 +90,19 @@ public class DiscordEventListener implements EventListener {
                 if (joinedChannel != null && leftChannel == null) {
                     if (!DiscordPlugin.getInstance().messages.get().vcJoin.isBlank())
                         MessageUtil.broadcastMessageIngame(DiscordPlugin.getInstance().messages.get().vcJoin
-                                .replace("%username%", MessageUtil.normalize(member.getEffectiveName()))
-                                .replace("%dstName%", MessageUtil.normalize(joinedChannel.getName())));
+                                .replace("%username%", member.getEffectiveName())
+                                .replace("%dstName%", joinedChannel.getName()));
                 } else if (leftChannel != null && joinedChannel == null) {
                     if (!DiscordPlugin.getInstance().messages.get().vcLeave.isBlank())
                         MessageUtil.broadcastMessageIngame(DiscordPlugin.getInstance().messages.get().vcLeave
-                                .replace("%username%", MessageUtil.normalize(member.getEffectiveName()))
-                                .replace("%sourceName%", MessageUtil.normalize(leftChannel.getName())));
+                                .replace("%username%", member.getEffectiveName())
+                                .replace("%sourceName%", leftChannel.getName()));
                 } else if (joinedChannel != null && leftChannel != null) {
                     if (!DiscordPlugin.getInstance().messages.get().vcMove.isBlank())
                         MessageUtil.broadcastMessageIngame(DiscordPlugin.getInstance().messages.get().vcMove
-                                .replace("%username%", MessageUtil.normalize(member.getEffectiveName()))
-                                .replace("%sourceName%", MessageUtil.normalize(leftChannel.getName()))
-                                .replace("%dstName%", MessageUtil.normalize(joinedChannel.getName())));
+                                .replace("%username%", member.getEffectiveName())
+                                .replace("%sourceName%", leftChannel.getName())
+                                .replace("%dstName%", joinedChannel.getName()));
                 }
             }
         }
