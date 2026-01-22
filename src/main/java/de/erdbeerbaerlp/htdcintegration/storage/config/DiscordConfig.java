@@ -18,11 +18,16 @@ public class DiscordConfig {
                             (exConfig, val, extraInfo) -> exConfig.botToken = val,  // Setter
                             (exConfig, extraInfo) -> exConfig.botToken)                     // Getter
                     .add()
+                    .append(new KeyedCodec<String[]>("VcMessageChannelWhitelist", Codec.STRING_ARRAY ),
+                            (exConfig, val, extraInfo) -> exConfig.vcMessageWhitelist = val,  // Setter
+                            (exConfig, extraInfo) -> exConfig.vcMessageWhitelist)                     // Getter
+                    .add()
                     .build();
 
     // 2. Configuration variable with default value
     public Long channelID = 0L;
     public String botToken = "";
+    public String[] vcMessageWhitelist = new String[0];
 
 
 
@@ -38,5 +43,9 @@ public class DiscordConfig {
 
     public String getBotToken() {
         return botToken;
+    }
+
+    public String[] getVcMessageWhitelist() {
+        return vcMessageWhitelist;
     }
 }

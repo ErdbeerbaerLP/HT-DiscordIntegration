@@ -2,7 +2,6 @@ package de.erdbeerbaerlp.htdcintegration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
@@ -16,11 +15,10 @@ import de.erdbeerbaerlp.htdcintegration.hytaleCommands.HTDiscordSubCommandRegist
 import de.erdbeerbaerlp.htdcintegration.storage.CommandRegistry;
 import de.erdbeerbaerlp.htdcintegration.storage.JSONInterface;
 import de.erdbeerbaerlp.htdcintegration.storage.LinkManager;
-import de.erdbeerbaerlp.htdcintegration.storage.config.CommandConfig;
-import de.erdbeerbaerlp.htdcintegration.storage.config.DiscordConfig;
-import de.erdbeerbaerlp.htdcintegration.storage.config.LinkingConfig;
-import de.erdbeerbaerlp.htdcintegration.storage.config.MessageConfig;
-import net.dv8tion.jda.api.Permission;
+import de.erdbeerbaerlp.htdcintegration.storage.config.*;
+import de.erdbeerbaerlp.htdcintegration.util.DiscordMessage;
+import de.erdbeerbaerlp.htdcintegration.util.MessageUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -33,14 +31,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Main plugin class.
- * 
- * TODO: Implement your plugin logic here.
- * 
  * @author ErdbeerbaerLP
- * @version 1.0.0
+ * @version 0.3.0
  */
 public class DiscordPlugin extends JavaPlugin {
+
+    public static String VERSION = "0.3.0";
 
 
     public static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -51,10 +47,11 @@ public class DiscordPlugin extends JavaPlugin {
     public final Config<MessageConfig> messages;
     public final Config<LinkingConfig> linkconf;
     public final Config<CommandConfig> cmdconf;
+    public final Config<WebhookConfig> webhookconf;
 
     public Discord discord;
     private StatusUpdateTask statusUpdater;
-    public static final File baseDir = new File("mods","DiscordIntegration_DiscordIntegration") ;
+    public static final File baseDir = new File("mods", "DiscordIntegration_DiscordIntegration");
 
 
     /**
@@ -69,6 +66,7 @@ public class DiscordPlugin extends JavaPlugin {
         this.messages = this.withConfig("Messages", MessageConfig.CODEC);
         this.linkconf = this.withConfig("Linking", LinkingConfig.CODEC);
         this.cmdconf = this.withConfig("Commands", CommandConfig.CODEC);
+        this.webhookconf = this.withConfig("Webhook", WebhookConfig.CODEC);
 
         JSONInterface.initialize();
 
@@ -81,7 +79,7 @@ public class DiscordPlugin extends JavaPlugin {
 
 
         this.getCommandRegistry().registerCommand(new DiscordCommand());
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             try {
                 CommandRegistry.updateSlashCommands();
             } catch (IllegalStateException e) {
@@ -90,10 +88,13 @@ public class DiscordPlugin extends JavaPlugin {
         });
 
         started = new Date().getTime();
-        discord.sendMessage(messages.get().serverStart);
+
+        if (!messages.get().serverStart.isBlank())
+            discord.sendSysMessage(new DiscordMessage(messages.get().serverStart));
     }
 
     private static Timer timer = new Timer();
+
     @Override
     protected void setup() {
         super.setup();
@@ -103,8 +104,9 @@ public class DiscordPlugin extends JavaPlugin {
         this.messages.save();
         this.linkconf.save();
         this.cmdconf.save();
+        this.webhookconf.save();
 
-        if(config.get().botToken.isBlank()){
+        if (config.get().botToken.isBlank()) {
             getLogger().atSevere().log("Discord bot token is blank!");
             return;
         }
@@ -122,12 +124,12 @@ public class DiscordPlugin extends JavaPlugin {
         getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, this::onPlayerDisconnect);
         getEventRegistry().registerGlobal(PlayerConnectEvent.class, this::onPlayerConnect);
         getEventRegistry().registerGlobal(PlayerSetupConnectEvent.class, this::onPlayerSetupConnect);
+        getEventRegistry().registerGlobal(PlayerSetupConnectEvent.class, this::onPlayerSetupConnect);
+        this.getEntityStoreRegistry().registerSystem(new PlayerDeathListenerEvent());
 
         if (statusUpdater == null) statusUpdater = new StatusUpdateTask();
 
         timer.scheduleAtFixedRate(statusUpdater, 0, TimeUnit.SECONDS.toMillis(10));
-
-
 
 
         HTDiscordSubCommandRegistry.registerDefaultCommands();
@@ -135,6 +137,7 @@ public class DiscordPlugin extends JavaPlugin {
 
 
     }
+
     public boolean canPlayerJoin(UUID uuid) {
         if (!DiscordPlugin.getInstance().linkconf.get().linkingWhitelistMode) return true;
         if (LinkManager.isPlayerLinked(uuid)) {
@@ -154,8 +157,9 @@ public class DiscordPlugin extends JavaPlugin {
         }
         return false;
     }
+
     private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
-        if(linkconf.get().enableLinking && linkconf.get().linkingWhitelistMode){
+        if (linkconf.get().enableLinking && linkconf.get().linkingWhitelistMode) {
             try {
                 if (!LinkManager.isPlayerLinked(event.getUuid())) {
                     event.setReason(DiscordPlugin.getInstance().messages.get().notWhitelistedCode.replace("%code%", "" + (LinkManager.genLinkNumber(event.getUuid()))));
@@ -174,20 +178,26 @@ public class DiscordPlugin extends JavaPlugin {
 
     private void onPlayerConnect(PlayerConnectEvent event) {
         final PlayerRef player = event.getPlayerRef();
-
-        discord.sendMessage(messages.get().playerJoin.replace("%playername%",player.getUsername()));
+        if (!messages.get().playerJoin.isBlank())
+            discord.sendSysMessage(new DiscordMessage(messages.get().playerJoin.replace("%playername%", player.getUsername())));
     }
 
     private void onPlayerDisconnect(PlayerDisconnectEvent event) {
         final PlayerRef player = event.getPlayerRef();
-        discord.sendMessage(messages.get().playerLeave.replace("%playername%",player.getUsername()));
+        if (!messages.get().playerLeave.isBlank())
+            discord.sendSysMessage(new DiscordMessage(messages.get().playerLeave.replace("%playername%", player.getUsername())));
 
     }
+
     public void onPlayerChat(PlayerChatEvent event) {
         final PlayerRef player = event.getSender();
-        final String message = event.getContent();
+        String message = event.getContent();
+        message = MessageUtil.escapeMarkdown(message);
 
-        discord.sendMessage(messages.get().discordMessage.replace("%playername%",player.getUsername()).replace("%message%",message));
+
+        if (!messages.get().ingameMessage.isBlank())
+            discord.sendPlayerChatMessage(new DiscordMessage(null, message, true), player);
+
     }
 
     @Override
@@ -196,7 +206,8 @@ public class DiscordPlugin extends JavaPlugin {
 
         timer.cancel();
         timer.purge();
-        discord.sendMessage(messages.get().serverStop);
+        if (!messages.get().serverStop.isBlank())
+            discord.sendSysMessage(new DiscordMessage(messages.get().serverStop));
         try {
             discord.getJda().awaitShutdown(2, TimeUnit.SECONDS);
         } catch (InterruptedException e) {

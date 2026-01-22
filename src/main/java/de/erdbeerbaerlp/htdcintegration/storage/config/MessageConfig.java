@@ -156,6 +156,24 @@ public class MessageConfig {
                             (c, v, e) -> c.noPermission = v,
                             (c, e) -> c.noPermission)
                     .add()
+                    .append(new KeyedCodec<>("VcJoin", Codec.STRING),
+                            (c, v, e) -> c.vcJoin = v,
+                            (c, e) -> c.vcJoin)
+                    .add()
+
+                    .append(new KeyedCodec<>("VcLeave", Codec.STRING),
+                            (c, v, e) -> c.vcLeave = v,
+                            (c, e) -> c.vcLeave)
+                    .add()
+                    .append(new KeyedCodec<>("VcMove", Codec.STRING),
+                            (c, v, e) -> c.vcMove = v,
+                            (c, e) -> c.vcMove)
+                    .add()
+                    .append(new KeyedCodec<>("SendDeathMessages", Codec.BOOLEAN),
+                            (c, v, e) -> c.sendDeathMessages = v,
+                            (c, e) -> c.sendDeathMessages)
+                    .add()
+
 
                     .build();
 
@@ -206,6 +224,12 @@ public class MessageConfig {
     public String inviteURL = "https://discord.gg/myserver";
     public String cmdLinkIngameDescription = "Link your discord account with your Hytale account";
     public String noPermission = "You don't have permission to use this command!";
+
+
+    public String vcJoin = "[Discord] %username% joined the voice channel \"%dstName%\"";
+    public String vcLeave = "[Discord] %username% left the voice channel \"%sourceName%\"";
+    public String vcMove = "[Discord] %username% moved from the voice channel \"%sourceName%\" to \"%dstName%\"";
+    public boolean sendDeathMessages = true;
 
 
     // 3. Constructor
