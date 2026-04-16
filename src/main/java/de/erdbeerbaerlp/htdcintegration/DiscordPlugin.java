@@ -2,10 +2,12 @@ package de.erdbeerbaerlp.htdcintegration;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.event.events.player.PlayerChatEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerConnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerDisconnectEvent;
 import com.hypixel.hytale.server.core.event.events.player.PlayerSetupConnectEvent;
+import com.hypixel.hytale.server.core.io.PacketHandler;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -159,18 +161,22 @@ public class DiscordPlugin extends JavaPlugin {
     }
 
     private void onPlayerSetupConnect(PlayerSetupConnectEvent event) {
+        final PacketHandler packetHandler = event.getPacketHandler();
         if (linkconf.get().enableLinking && linkconf.get().linkingWhitelistMode) {
             try {
                 if (!LinkManager.isPlayerLinked(event.getUuid())) {
-                    event.setReason(DiscordPlugin.getInstance().messages.get().notWhitelistedCode.replace("%code%", "" + (LinkManager.genLinkNumber(event.getUuid()))));
+                    event.setReason(Message.raw(DiscordPlugin.getInstance().messages.get().notWhitelistedCode.replace("%code%", "" + (LinkManager.genLinkNumber(event.getUuid())))));
                     event.setCancelled(true);
+                    packetHandler.disconnect(Message.raw(DiscordPlugin.getInstance().messages.get().notWhitelistedCode.replace("%code%", "" + (LinkManager.genLinkNumber(event.getUuid())))));
                 } else if (!canPlayerJoin(event.getUuid())) {
-                    event.setReason(DiscordPlugin.getInstance().messages.get().notWhitelistedRole);
+                    event.setReason(Message.raw(DiscordPlugin.getInstance().messages.get().notWhitelistedRole));
                     event.setCancelled(true);
+                    packetHandler.disconnect(Message.raw(DiscordPlugin.getInstance().messages.get().notWhitelistedRole));
                 }
             } catch (IllegalStateException e) {
-                event.setReason("An error occured\nPlease check Server Log for more information\n\n" + e);
+                event.setReason(Message.raw("An error occured\nPlease check Server Log for more information\n\n" + e));
                 event.setCancelled(true);
+                packetHandler.disconnect(Message.raw("An error occured\nPlease check Server Log for more information\n\n" + e));
                 e.printStackTrace();
             }
         }

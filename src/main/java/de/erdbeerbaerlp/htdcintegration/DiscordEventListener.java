@@ -42,7 +42,7 @@ public class DiscordEventListener implements EventListener {
 
         if (event instanceof SlashCommandInteractionEvent ev) {
             if (!true) return;
-            if (ev.getChannelType().equals(ChannelType.TEXT)) {
+            if (ev.getChannelType().equals(ChannelType.TEXT) || ev.getChannelType().equals(ChannelType.PRIVATE)) {
                 if (CommandRegistry.registeredCMDs.containsKey(ev.getCommandId())) {
                     final DiscordCommand cfCommand = CommandRegistry.registeredCMDs.get(ev.getCommandId());
                     String cmd = cfCommand.getName();

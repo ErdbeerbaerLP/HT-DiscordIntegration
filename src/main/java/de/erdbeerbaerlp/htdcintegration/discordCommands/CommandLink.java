@@ -27,8 +27,14 @@ public class CommandLink extends DiscordCommand {
     @Override
     public void execute(SlashCommandInteractionEvent ev, ReplyCallbackAction replyCallbackAction) {
         final CompletableFuture<InteractionHook> reply = replyCallbackAction.setEphemeral(true).submit();
-        Member m = ev.getMember();
-        if (m == null) m = DiscordPlugin.getInstance().discord.getMemberById(ev.getUser().getIdLong());
+        Member m = null;
+        if (ev.getChannelType().isGuild())
+           m = ev.getMember();
+        else
+            m = DiscordPlugin.getInstance().discord.getMemberById(ev.getUser().getIdLong());
+        if(m == null){
+            DiscordPlugin.getInstance().getLogger().atWarning().log("[Link Command] Could not find member for user " + ev.getUser().getIdLong()+". Interrupting.");
+        }
         if (m != null)
             if (DiscordPlugin.getInstance().linkconf.get().requiredRoles.length != 0) {
                 AtomicBoolean ok = new AtomicBoolean(false);
@@ -58,7 +64,7 @@ public class CommandLink extends DiscordCommand {
                         MessageUtil.broadcastMessageIngame((DiscordPlugin.getInstance().messages.get().linkSuccessfulIngame.replace("%playername%", ev.getUser().getName()).replace("%username%", ev.getUser().getAsTag())));
                     } else
                         reply.thenAccept((c) -> c.editOriginal(DiscordPlugin.getInstance().messages.get().linkFailed).queue());
-                }  else {
+                } else {
                     reply.thenAccept((c) -> c.editOriginal(DiscordPlugin.getInstance().messages.get().invalidLinkNumber).queue());
                 }
             } catch (NumberFormatException nfe) {
