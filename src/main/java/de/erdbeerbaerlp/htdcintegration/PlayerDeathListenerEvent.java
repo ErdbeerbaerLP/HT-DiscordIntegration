@@ -8,6 +8,7 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathSystems;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import de.erdbeerbaerlp.htdcintegration.util.DiscordMessage;
 import org.jetbrains.annotations.Nullable;
@@ -18,14 +19,14 @@ import java.text.MessageFormat;
 public class PlayerDeathListenerEvent extends DeathSystems.OnDeathSystem {
 
     public void onComponentAdded(@Nonnull Ref ref, @Nonnull DeathComponent component, @Nonnull Store store, @Nonnull CommandBuffer commandBuffer) {
-        Player player = (Player)store.getComponent(ref, Player.getComponentType());
+        PlayerRef player = (PlayerRef)store.getComponent(ref, PlayerRef.getComponentType());
 
         assert player != null;
         Message msg = component.getDeathMessage();
         if(msg == null)
-            msg = Message.raw(MessageFormat.format("Player {0} has died.", player.getDisplayName()));
+            msg = Message.raw(MessageFormat.format("Player {0} has died.", player.getUsername()));
 
-        DiscordPlugin.getInstance().discord.sendSysMessage(new DiscordMessage(msg.getAnsiMessage().replace("You were", player.getDisplayName()+" was")));
+        DiscordPlugin.getInstance().discord.sendSysMessage(new DiscordMessage(msg.getAnsiMessage().replace("You were", player.getUsername()+" was")));
     }
 
     @Nullable
